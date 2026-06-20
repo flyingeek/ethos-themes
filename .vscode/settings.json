@@ -1,0 +1,17 @@
+{
+    "files.exclude": {
+        "**/*.luac": true
+    },
+    "json.schemaDownload.trustedDomains": {
+        "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json": true
+    },
+    // When working with multiple roots,
+    // ethos and ethos-devtools settings must be set in the workspace settings.json file.
+    "ethos.release": "nightly26",
+    "ethos.board": "X20PRO",
+    "ethos.protocol": "FCC",
+    "ethos-devtools.deploy": {
+        "app": "themes",
+        "multiApp": true
+    }
+}

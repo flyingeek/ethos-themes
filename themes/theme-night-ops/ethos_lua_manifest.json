@@ -1,0 +1,15 @@
+{
+    "manifestVersion": 1,
+    "name": "Theme: Night Ops",
+    "key": "flyingeek-theme-NightOp",
+    "version": "1.0.1",
+    "releaseNotes": {
+        "format": "markdown",
+        "content": "Red-on-black cockpit style for low-light flying\n\nby [@flyingeek](https://github.com/flyingeek?tab=repositories&q=topic:ethos)\n"
+    },
+    "folder": "theme-night-ops",
+    "files": [
+        "main.lua",
+        "toolbar-*"
+    ]
+}

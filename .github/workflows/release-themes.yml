@@ -1,0 +1,81 @@
+name: Release Themes
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (format: release/x.X.X)"
+        required: true
+        type: string
+  push:
+    tags:
+      - "release/*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve release tag
+        id: resolve_tag
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            TAG="${{ inputs.tag }}"
+          else
+            TAG="${{ github.ref_name }}"
+          fi
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Validate tag format
+        run: |
+          TAG="${{ steps.resolve_tag.outputs.tag }}"
+          if ! [[ $TAG =~ ^release/[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+            echo "Invalid tag format: $TAG (expected release/x.X.X or release/x.X.X-suffix)"
+            exit 1
+          fi
+          echo "✓ Tag format valid: $TAG"
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Package themes
+        run: |
+          mkdir -p dist
+          python .github/scripts/package-themes.py dist "${{ steps.resolve_tag.outputs.tag }}"
+
+      - name: Generate release notes
+        run: |
+          python .github/scripts/create-release-note.py > dist/RELEASE_NOTES.md
+
+      - name: Generate themes.json
+        run: |
+          python .github/scripts/generate-themes-json.py dist "${{ steps.resolve_tag.outputs.tag }}" "${{ github.repository_owner }}" "ethos-themes"
+
+      - name: Display release notes
+        run: cat dist/RELEASE_NOTES.md
+
+      - name: Verify artifacts
+        run: |
+          COUNT=$(find dist -name "*.zip" | wc -l)
+          if [ "$COUNT" -eq 0 ]; then
+            echo "Error: No zip files were created"
+            exit 1
+          fi
+          echo "✓ $COUNT theme zip(s) ready for release"
+
+      - name: Create or update release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.resolve_tag.outputs.tag }}
+          body_path: dist/RELEASE_NOTES.md
+          files: |
+            dist/*.zip
+            dist/themes.json
+          draft: false
+          prerelease: false
